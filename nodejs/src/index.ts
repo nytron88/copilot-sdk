@@ -12,6 +12,7 @@ export { CopilotClient } from "./client.js";
 export { RuntimeConnection } from "./types.js";
 export { BuiltInTools, ToolSet } from "./toolSet.js";
 export { CopilotSession, type AssistantMessageEvent } from "./session.js";
+export { defineFactory, FactoryResumeError, isFactoryRunTerminal } from "./factory.js";
 export {
     Canvas,
     CanvasError,
@@ -92,6 +93,8 @@ export type {
     LargeToolOutputConfig,
     MemoryConfiguration,
     UiInputOptions,
+    FactoryLimits,
+    FactoryMeta,
     MCPStdioServerConfig,
     MCPHTTPServerConfig,
     MCPServerConfig,
@@ -165,3 +168,26 @@ export type {
     TypedSessionLifecycleHandler,
     ZodSchema,
 } from "./types.js";
+export type {
+    RunOptions,
+    ResumeOptions,
+    FactoryResumeErrorCode,
+    SessionFactoryApi,
+    FactoryAgentOptions,
+    FactoryContext,
+    FactoryDefinition,
+    FactoryHandle,
+    FactoryJsonSchema,
+    JsonValue,
+    FactoryPipelineStage,
+    FactoryStepOptions,
+    FactoryRunResult,
+    FactoryRunStatus,
+    FactoryRunSummary,
+    FactoryRunDetail,
+    FactoryProgressPage,
+    FactoryProgressLine,
+    FactoryPhaseObservation,
+    FactoryPhaseStatus,
+    FactoryAgentSummary,
+} from "./factory.js";

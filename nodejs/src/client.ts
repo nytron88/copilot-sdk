@@ -86,6 +86,7 @@ import type {
     TypedSessionLifecycleHandler,
 } from "./types.js";
 import { defaultJoinSessionPermissionHandler } from "./types.js";
+import type { FactoryHandle } from "./factory.js";
 
 /**
  * Minimum protocol version this SDK can communicate with.
@@ -1664,6 +1665,23 @@ export class CopilotClient {
      * ```
      */
     async resumeSession(sessionId: string, config: ResumeSessionConfig): Promise<CopilotSession> {
+        return this.resumeSessionInternal(sessionId, config);
+    }
+
+    /** @internal */
+    async resumeSessionForExtension(
+        sessionId: string,
+        config: ResumeSessionConfig,
+        factories?: FactoryHandle[]
+    ): Promise<CopilotSession> {
+        return this.resumeSessionInternal(sessionId, config, factories);
+    }
+
+    private async resumeSessionInternal(
+        sessionId: string,
+        config: ResumeSessionConfig,
+        factories?: FactoryHandle[]
+    ): Promise<CopilotSession> {
         if (!this.connection) {
             await this.start();
         }
@@ -1680,6 +1698,7 @@ export class CopilotClient {
         session.registerTools(config.tools);
         session.registerCanvases(config.canvases);
         session.registerCommands(config.commands);
+        session.registerFactories(factories);
         const {
             wireProvider: bearerWireProvider,
             wireProviders: bearerWireProviders,
@@ -1751,6 +1770,7 @@ export class CopilotClient {
                 })),
                 toolSearch: config.toolSearch,
                 canvases: config.canvases?.map((canvas) => canvas.declaration),
+                factories: factories?.map((factory) => factory.meta),
                 requestCanvasRenderer: config.requestCanvasRenderer,
                 requestExtensions: config.requestExtensions,
                 extensionSdkPath: config.extensionSdkPath,

@@ -50,6 +50,9 @@ import type {
     UserMessageAgentMode,
     Attachment,
     WorkingDirectoryContextHostType,
+    FactoryContext,
+    FactoryDefinition,
+    JsonValue,
 } from "../src/index.js";
 
 /**
@@ -80,6 +83,17 @@ type _AssistantMessageEventStaysAlignedWithSessionEventUnion = _AssertEqual<
     Extract<SessionEvent, { type: "assistant.message" }>
 >;
 const _assistantMessageEventAlignmentCheck: _AssistantMessageEventStaysAlignedWithSessionEventUnion = true;
+type _DefaultFactoryArgsAreJsonValue = _AssertEqual<FactoryContext["args"], JsonValue>;
+const _defaultFactoryArgsCheck: _DefaultFactoryArgsAreJsonValue = true;
+type _DefaultFactoryResultIsJsonValueOrVoid = _AssertEqual<
+    Awaited<ReturnType<FactoryDefinition["run"]>>,
+    JsonValue | void
+>;
+const _defaultFactoryResultCheck: _DefaultFactoryResultIsJsonValueOrVoid = true;
+// @ts-expect-error Factory arguments must be representable on the JSON wire.
+type _FactoryArgsRejectUndefined = FactoryContext<undefined>;
+// @ts-expect-error Factory results must be JSON values or top-level void.
+type _FactoryResultRejectsFunction = FactoryDefinition<JsonValue, () => void>;
 
 describe("Session event type exports (#1156)", () => {
     it("exposes the headline ToolExecutionStartData type with a usable shape", () => {
