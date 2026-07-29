@@ -82,7 +82,24 @@ def get_cli_path_for_tests() -> str:
     )
 
 
-CLI_PATH = get_cli_path_for_tests()
+_CLI_PATH: str | None = None
+
+
+def __getattr__(name: str) -> str:
+    """Resolve ``CLI_PATH`` on first access (PEP 562).
+
+    Resolving at import time turns a missing or foreign-platform ``node_modules``
+    into a pytest collection error for every module that transitively imports the
+    harness. Deferring it keeps that a failure of the tests that need a CLI.
+    """
+    if name == "CLI_PATH":
+        global _CLI_PATH
+        if _CLI_PATH is None:
+            _CLI_PATH = get_cli_path_for_tests()
+        return _CLI_PATH
+    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
+
+
 SNAPSHOTS_DIR = Path(__file__).parents[3] / "test" / "snapshots"
 DEFAULT_GITHUB_TOKEN = "fake-token-for-e2e-tests"
 

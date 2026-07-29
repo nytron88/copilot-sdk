@@ -7,6 +7,8 @@ built for the current platform.
 
 from __future__ import annotations
 
+import subprocess
+import sys
 from pathlib import Path
 
 import pytest
@@ -99,3 +101,43 @@ class TestGetCliPathForTests:
         assert "copilot-linux-x64" in message
         assert "npm install" in message
         assert "COPILOT_CLI_PATH" in message
+
+
+class TestLazyCliPath:
+    def test_importing_the_harness_does_not_resolve_the_cli(self):
+        script = (
+            "import e2e.testharness as h;"
+            " from e2e.testharness import context;"
+            " assert 'CLI_PATH' not in vars(h), 'package resolved CLI_PATH at import';"
+            " assert context._CLI_PATH is None, 'context resolved CLI_PATH at import'"
+        )
+        result = subprocess.run(
+            [sys.executable, "-c", script],
+            cwd=Path(__file__).parent,
+            capture_output=True,
+            text=True,
+        )
+        assert result.returncode == 0, result.stderr
+
+    def test_cli_path_attribute_still_resolves_on_access(self, monkeypatch):
+        monkeypatch.setattr(context, "_CLI_PATH", None)
+        monkeypatch.setattr(context, "get_cli_path_for_tests", lambda: "/fake/index.js")
+        assert context.CLI_PATH == "/fake/index.js"
+
+    def test_unknown_attribute_still_raises_attribute_error(self):
+        with pytest.raises(AttributeError):
+            context.NOT_A_REAL_ATTRIBUTE
+
+    def test_cli_path_is_resolved_once_and_cached(self, monkeypatch):
+        calls = []
+
+        def fake_resolver() -> str:
+            calls.append(1)
+            return "/fake/index.js"
+
+        monkeypatch.setattr(context, "_CLI_PATH", None)
+        monkeypatch.setattr(context, "get_cli_path_for_tests", fake_resolver)
+        assert context.CLI_PATH == "/fake/index.js"
+        assert context.CLI_PATH == "/fake/index.js"
+        assert calls == [1], "CLI_PATH must resolve once and cache"
+        assert context._CLI_PATH == "/fake/index.js"
